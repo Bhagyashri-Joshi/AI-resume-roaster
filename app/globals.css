@@ -1,0 +1,99 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  background-color: #0f0f13;
+  color: #f4f4f5;
+}
+
+::selection {
+  background: #ff5c33;
+  color: #0f0f13;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Hero magnifier animation                                               */
+/* ---------------------------------------------------------------------- */
+
+@keyframes doc-float {
+  0%,
+  100% {
+    transform: rotate(-4deg) translateY(0);
+  }
+  50% {
+    transform: rotate(-2deg) translateY(-8px);
+  }
+}
+
+@keyframes magnifier-move {
+  0% {
+    transform: translate(38px, 218px) rotate(-8deg) scale(1);
+  }
+  25% {
+    transform: translate(150px, 68px) rotate(5deg) scale(1.05);
+  }
+  50% {
+    transform: translate(190px, 150px) rotate(-4deg) scale(0.97);
+  }
+  75% {
+    transform: translate(108px, 232px) rotate(6deg) scale(1.04);
+  }
+  100% {
+    transform: translate(38px, 218px) rotate(-8deg) scale(1);
+  }
+}
+
+@keyframes magnifier-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 24px 4px rgba(255, 140, 40, 0.35), inset 0 0 18px rgba(255, 255, 255, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 40px 10px rgba(255, 140, 40, 0.55), inset 0 0 18px rgba(255, 255, 255, 0.2);
+  }
+}
+
+@keyframes magnify-pan {
+  0% {
+    transform: translate(-21px, -120px);
+  }
+  25% {
+    transform: translate(-83px, -37px);
+  }
+  50% {
+    transform: translate(-105px, -83px);
+  }
+  75% {
+    transform: translate(-60px, -128px);
+  }
+  100% {
+    transform: translate(-21px, -120px);
+  }
+}
+
+.animate-doc-float {
+  animation: doc-float 6s ease-in-out infinite;
+}
+
+.animate-magnifier {
+  animation: magnifier-move 7s ease-in-out infinite;
+}
+
+.animate-magnifier-glow {
+  animation: magnifier-glow 7s ease-in-out infinite;
+}
+
+.animate-magnify-pan {
+  animation: magnify-pan 7s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-doc-float,
+  .animate-magnifier,
+  .animate-magnifier-glow,
+  .animate-magnify-pan {
+    animation: none !important;
+  }
+}
