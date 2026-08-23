@@ -28,9 +28,7 @@ export async function extractResumeText(buffer: Buffer): Promise<string> {
   // pdf-parse ships a debug entry point that tries to read a local test
   // file when required at the package root, so we import its lib build
   // directly to avoid that side effect in serverless environments.
-  const pdfParse = (await import("pdf-parse/lib/pdf-parse.js")).default as (
-    data: Buffer
-  ) => Promise<{ text: string }>;
+  const pdfParse = (await import("pdf-parse/lib/pdf-parse.js")).default;
 
   let text: string;
   try {
