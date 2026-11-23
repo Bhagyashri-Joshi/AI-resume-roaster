@@ -68,7 +68,7 @@ model Roast {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
-  @@index([createdAt])
+  // History queries always filter by userId and sort by createdAt; this one
+  // composite index serves them (a separate userId or createdAt index is redundant).
   @@index([userId, createdAt])
 }

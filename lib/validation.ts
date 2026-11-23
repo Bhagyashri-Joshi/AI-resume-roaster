@@ -26,8 +26,8 @@ export const BulletRoastSchema = z.object({
   reason: z.string().min(1),
 });
 
-export const RoastResultSchema = z.object({
-  overallScore: z.number().min(0).max(100).optional(),
+/** What we expect from the model. It never supplies overallScore; the backend computes it. */
+export const RoastAnalysisSchema = z.object({
   summary: z.string().min(1),
   categoryScores: CategoryScoresSchema,
   topIssues: z.array(RoastIssueSchema).min(1).max(10),
@@ -36,20 +36,10 @@ export const RoastResultSchema = z.object({
   finalVerdict: z.string().min(1),
 });
 
-export type ValidatedRoastResult = z.infer<typeof RoastResultSchema>;
-
-export const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
-export const MIN_EXTRACTED_TEXT_LENGTH = 200;
-
-export function isPdfFile(file: File): boolean {
-  const nameOk = file.name.toLowerCase().endsWith(".pdf");
-  const typeOk = file.type === "application/pdf" || file.type === "";
-  return nameOk && typeOk;
-}
-
-export function isWithinSizeLimit(file: File): boolean {
-  return file.size > 0 && file.size <= MAX_FILE_SIZE;
-}
+/** The full result stored in the database and returned to the client. */
+export const RoastResultSchema = RoastAnalysisSchema.extend({
+  overallScore: z.number().min(0).max(100),
+});
 
 /**
  * Strips markdown code fences the model may wrap around JSON output,
@@ -63,21 +53,24 @@ export function stripCodeFences(raw: string): string {
 }
 
 export function safeParseRoastJson(raw: string) {
-  const cleaned = stripCodeFences(raw);
   let parsed: unknown;
   try {
-    parsed = JSON.parse(cleaned);
+    parsed = JSON.parse(stripCodeFences(raw));
   } catch {
     return { success: false as const, error: "INVALID_JSON" as const };
   }
-  const result = RoastResultSchema.safeParse(parsed);
+  const result = RoastAnalysisSchema.safeParse(parsed);
   if (!result.success) {
     return { success: false as const, error: "SCHEMA_INVALID" as const };
   }
   return { success: true as const, data: result.data };
 }
 
-const CATEGORY_WEIGHTS = {
+type CategoryScores = z.infer<typeof CategoryScoresSchema>;
+
+// Typed as Record<keyof CategoryScores, number> so adding/removing a category
+// without updating the weights is a compile error.
+const CATEGORY_WEIGHTS: Record<keyof CategoryScores, number> = {
   content: 0.25,
   impact: 0.2,
   clarity: 0.15,
@@ -85,17 +78,12 @@ const CATEGORY_WEIGHTS = {
   structure: 0.1,
   skills: 0.1,
   professionalism: 0.05,
-} as const;
+};
 
-export function calculateOverallScore(categoryScores: z.infer<typeof CategoryScoresSchema>): number {
-  const weighted =
-    categoryScores.content * CATEGORY_WEIGHTS.content +
-    categoryScores.impact * CATEGORY_WEIGHTS.impact +
-    categoryScores.clarity * CATEGORY_WEIGHTS.clarity +
-    categoryScores.ats * CATEGORY_WEIGHTS.ats +
-    categoryScores.structure * CATEGORY_WEIGHTS.structure +
-    categoryScores.skills * CATEGORY_WEIGHTS.skills +
-    categoryScores.professionalism * CATEGORY_WEIGHTS.professionalism;
-
+export function calculateOverallScore(categoryScores: CategoryScores): number {
+  const weighted = (Object.keys(CATEGORY_WEIGHTS) as (keyof CategoryScores)[]).reduce(
+    (sum, key) => sum + categoryScores[key] * CATEGORY_WEIGHTS[key],
+    0
+  );
   return Math.max(0, Math.min(100, Math.round(weighted)));
 }

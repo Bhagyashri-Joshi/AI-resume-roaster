@@ -1,5 +1,6 @@
 import Link from "next/link";
 import HeroAnimation from "@/components/HeroAnimation";
+import { btnOutline, btnPrimary } from "@/components/ui";
 
 export default function Hero() {
   return (
@@ -13,16 +14,10 @@ export default function Hero() {
           Upload your resume. Get roasted. Get better.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-4 sm:justify-start">
-          <Link
-            href="/roast"
-            className="rounded-full bg-accent px-6 py-3 font-bold text-ink hover:opacity-90"
-          >
+          <Link href="/roast" className={btnPrimary}>
             Roast My Resume
           </Link>
-          <Link
-            href="#example"
-            className="rounded-full border border-white/15 px-6 py-3 font-semibold hover:bg-white/5"
-          >
+          <Link href="/example" className={btnOutline}>
             View Example Roast
           </Link>
         </div>

@@ -1,45 +1,23 @@
-export type Severity = "low" | "medium" | "high";
+import type { z } from "zod";
+import type {
+  BulletRoastSchema,
+  CategoryScoresSchema,
+  RoastIssueSchema,
+  RoastResultSchema,
+} from "@/lib/validation";
 
-export interface RoastIssue {
-  title: string;
-  category: string;
-  severity: Severity;
-  roast: string;
-  explanation: string;
-  recommendation: string;
-}
+// Types are derived from the Zod schemas so there is a single source of truth.
+export type RoastIssue = z.infer<typeof RoastIssueSchema>;
+export type Severity = RoastIssue["severity"];
+export type BulletRoast = z.infer<typeof BulletRoastSchema>;
+export type CategoryScores = z.infer<typeof CategoryScoresSchema>;
+export type RoastResult = z.infer<typeof RoastResultSchema>;
 
-export interface BulletRoast {
-  original: string;
-  roast: string;
-  improved: string;
-  reason: string;
-}
-
-export interface CategoryScores {
-  content: number;
-  impact: number;
-  clarity: number;
-  ats: number;
-  structure: number;
-  skills: number;
-  professionalism: number;
-}
-
-export interface RoastResult {
-  overallScore: number;
-  summary: string;
-  categoryScores: CategoryScores;
-  topIssues: RoastIssue[];
-  bulletRoasts: BulletRoast[];
-  quickWins: string[];
-  finalVerdict: string;
-}
-
-export interface SavedRoast {
+/** One row of the history list. */
+export interface HistoryItem {
   id: string;
   filename: string;
   overallScore: number;
-  createdAt: string;
-  result: RoastResult;
+  createdAt: string; // ISO string
+  summary: string;
 }

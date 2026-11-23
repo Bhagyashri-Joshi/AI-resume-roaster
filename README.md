@@ -33,12 +33,11 @@ The AI response is structured and validated before being displayed to the user.
 
 The analysis includes areas such as:
 
-- Overall resume score
-- Strengths
-- Weaknesses
-- Resume issues
-- Actionable suggestions
-- Improvement recommendations
+- Overall resume score (calculated server-side from weighted category scores)
+- Scores for 7 categories: content, impact, clarity, ATS, structure, skills, professionalism
+- Prioritized top issues with a roast, explanation and fix for each
+- Rewritten examples of the weakest bullet points
+- Quick wins and a final verdict
 
 ### 🔐 Google Authentication
 Users can securely sign in using Google OAuth through NextAuth.js.
@@ -130,39 +129,33 @@ User accounts, authentication sessions, and roast history are persisted using Po
 
 ```text
 ai-resume-roaster/
-│
 ├── app/
 │   ├── api/
-│   │   ├── auth/
-│   │   │   └── [...nextauth]/
-│   │   ├── history/
-│   │   ├── roast/
-│   │   ├── roast/[id]/
-│   │   └── example/
-│   │
-│   ├── history/
+│   │   ├── auth/[...nextauth]/   NextAuth handler
+│   │   └── roast/                POST: analyze a resume
+│   │       └── [id]/             DELETE: remove a saved roast
+│   ├── history/                  Saved roasts (server-rendered)
+│   ├── roast/                    Upload page
+│   ├── roast/[id]/               A single saved roast
+│   ├── example/                  Sample roast
 │   ├── login/
-│   ├── roast/
-│   ├── roast/[id]/
-│   ├── example/
-│   └── page.tsx
-│
-├── components/
-│
+│   └── page.tsx                  Landing page
+├── components/                   UI (shared class strings live in ui.ts)
 ├── lib/
+│   ├── api.ts                    errorResponse helper
+│   ├── auth.ts                   NextAuth options
+│   ├── constants.ts              Shared limits and messages
+│   ├── exampleRoast.ts           Data for /example
+│   ├── file.ts                   PDF / size checks (client + server)
+│   ├── llm.ts                    Groq client
+│   ├── pdf.ts                    PDF text extraction
 │   ├── prisma.ts
-│   └── roast.ts
-│
-├── prisma/
-│   └── schema.prisma
-│
-├── public/
-│
-├── package.json
-├── package-lock.json
-├── tsconfig.json
-├── next.config.*
-└── README.md
+│   ├── roast.ts                  Prompt + generation + retry
+│   ├── session.ts                getUserId()
+│   └── validation.ts             Zod schemas + scoring
+├── prisma/schema.prisma
+├── types/
+└── package.json
 ```
 
 > Prisma Client is generated during installation/build and is not committed as generated source code.
@@ -452,9 +445,9 @@ The goal is not simply to criticize the resume, but to provide feedback that hel
 |---|---|---|
 | `/api/auth/[...nextauth]` | Various | Handles authentication |
 | `/api/roast` | `POST` | Uploads and analyzes a resume |
-| `/api/history` | `GET` | Retrieves the user's roast history |
-| `/api/roast/[id]` | `GET` | Retrieves a specific roast |
-| `/api/example` | `GET` | Example/demo API endpoint |
+| `/api/roast/[id]` | `DELETE` | Deletes one of the signed-in user's roasts |
+
+The history list (`/history`), a single saved roast (`/roast/[id]`) and the example roast (`/example`) are server-rendered pages that read their data directly, so they need no API routes.
 
 ---
 
@@ -575,13 +568,11 @@ Planned or possible improvements include:
 - [ ] Per-user daily/monthly roast limits
 - [ ] Subscription and paid plans
 - [ ] Resume-to-job-description matching
-- [ ] ATS compatibility scoring
 - [ ] Resume version comparison
 - [ ] Downloadable PDF roast reports
 - [ ] Resume improvement suggestions
 - [ ] More AI model/provider options
 - [ ] OCR support for scanned resumes
-- [ ] File size and content validation
 - [ ] Advanced API rate limiting
 - [ ] Usage analytics
 - [ ] Background processing for large resumes

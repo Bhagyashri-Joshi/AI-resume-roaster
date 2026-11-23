@@ -1,17 +1,7 @@
-import { completeChat, LlmProviderError } from "@/lib/groq";
-import {
-  calculateOverallScore,
-  safeParseRoastJson,
-} from "@/lib/validation";
+import { completeChat, LlmProviderError } from "@/lib/llm";
+import { GENERIC_ERROR_MESSAGE } from "@/lib/constants";
+import { calculateOverallScore, safeParseRoastJson } from "@/lib/validation";
 import type { RoastResult } from "@/types/roast";
-
-export class RoastGenerationError extends Error {
-  code: "LLM_TIMEOUT" | "LLM_RATE_LIMIT" | "LLM_ERROR" | "LLM_INVALID_JSON";
-  constructor(code: RoastGenerationError["code"], message: string) {
-    super(message);
-    this.code = code;
-  }
-}
 
 // ---------------------------------------------------------------------------
 // Four-layer prompt: Context -> Instruction -> Format -> Example
@@ -20,8 +10,8 @@ export class RoastGenerationError extends Error {
 const CONTEXT_LAYER = `You are an expert resume reviewer with a sharp, witty sense of humor.
 You analyze resumes for clarity, impact, ATS compatibility, professionalism, and hiring effectiveness.
 Your humor should target the resume's content and choices, never the person. Never insult the candidate,
-never make discriminatory comments, never attack protected characteristics, never invent facts that are
-not supported by the resume text, and never give unsafe or illegal advice.`;
+never make discriminatory comments, never attack protected characteristics, and never give unsafe or
+illegal advice.`;
 
 const INSTRUCTION_LAYER = `Analyze the resume text provided by the user. Identify:
 - weak bullet points
@@ -140,7 +130,7 @@ async function requestRoastCompletion(resumeText: string): Promise<string> {
  * controlled error.
  */
 export async function generateResumeRoast(resumeText: string): Promise<RoastResult> {
-  let lastError: RoastGenerationError | null = null;
+  let lastError: LlmProviderError | null = null;
 
   for (let attempt = 1; attempt <= 2; attempt++) {
     let raw: string;
@@ -148,41 +138,29 @@ export async function generateResumeRoast(resumeText: string): Promise<RoastResu
       raw = await requestRoastCompletion(resumeText);
     } catch (err) {
       if (err instanceof LlmProviderError) {
-        lastError = new RoastGenerationError(err.code, err.message);
         // Timeouts and rate limits are not worth retrying immediately.
-        if (err.code === "LLM_TIMEOUT" || err.code === "LLM_RATE_LIMIT") {
-          throw lastError;
-        }
-        continue;
+        if (err.code === "LLM_TIMEOUT" || err.code === "LLM_RATE_LIMIT") throw err;
+        lastError = err;
+      } else {
+        lastError = new LlmProviderError("LLM_ERROR", GENERIC_ERROR_MESSAGE);
       }
-      lastError = new RoastGenerationError("LLM_ERROR", "The roast machine is temporarily out of sarcasm. Please try again.");
       continue;
     }
 
     const parsed = safeParseRoastJson(raw);
     if (!parsed.success) {
-      lastError = new RoastGenerationError(
+      lastError = new LlmProviderError(
         "LLM_INVALID_JSON",
         "Something went wrong while generating your roast. Please try again."
       );
       continue;
     }
 
-    const overallScore = calculateOverallScore(parsed.data.categoryScores);
-
     return {
-      overallScore,
-      summary: parsed.data.summary,
-      categoryScores: parsed.data.categoryScores,
-      topIssues: parsed.data.topIssues,
-      bulletRoasts: parsed.data.bulletRoasts,
-      quickWins: parsed.data.quickWins,
-      finalVerdict: parsed.data.finalVerdict,
+      overallScore: calculateOverallScore(parsed.data.categoryScores),
+      ...parsed.data,
     };
   }
 
-  throw (
-    lastError ??
-    new RoastGenerationError("LLM_ERROR", "The roast machine is temporarily out of sarcasm. Please try again.")
-  );
+  throw lastError ?? new LlmProviderError("LLM_ERROR", GENERIC_ERROR_MESSAGE);
 }

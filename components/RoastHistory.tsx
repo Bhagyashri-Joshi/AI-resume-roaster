@@ -1,53 +1,29 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import LocalDate from "@/components/LocalDate";
+import { card } from "@/components/ui";
+import type { HistoryItem } from "@/types/roast";
 
-interface HistoryItem {
-  id: string;
-  filename: string;
-  overallScore: number;
-  createdAt: string;
-  summary: string;
-}
-
-export default function RoastHistory() {
-  const [items, setItems] = useState<HistoryItem[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
+export default function RoastHistory({ initialItems }: { initialItems: HistoryItem[] }) {
+  const [items, setItems] = useState(initialItems);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetch("/api/history")
-      .then((res) => res.json())
-      .then((data) => {
-        if (!data.success) {
-          setError(data?.error?.message || "Couldn't load your history.");
-          return;
-        }
-        setItems(data.roasts);
-      })
-      .catch(() => setError("Couldn't load your history."));
-  }, []);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleDelete(id: string) {
     setDeletingId(id);
+    setError(null);
     try {
       const res = await fetch(`/api/roast/${id}`, { method: "DELETE" });
       const data = await res.json();
-      if (data.success) {
-        setItems((prev) => (prev ? prev.filter((item) => item.id !== id) : prev));
-      }
+      if (!data.success) throw new Error();
+      setItems((prev) => prev.filter((item) => item.id !== id));
+    } catch {
+      setError("Couldn't delete that roast. Please try again.");
     } finally {
       setDeletingId(null);
     }
-  }
-
-  if (error) {
-    return <p className="text-sm text-red-300">{error}</p>;
-  }
-
-  if (!items) {
-    return <p className="text-sm text-zinc-400">Loading your roast history...</p>;
   }
 
   if (items.length === 0) {
@@ -64,16 +40,17 @@ export default function RoastHistory() {
 
   return (
     <div className="space-y-4">
+      {error && <p className="text-sm text-red-300">{error}</p>}
       {items.map((item) => (
         <div
           key={item.id}
-          className="flex flex-col gap-3 rounded-xl2 border border-white/10 bg-panel p-5 sm:flex-row sm:items-center sm:justify-between"
+          className={`${card} flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between`}
         >
           <div>
             <p className="font-semibold">{item.filename}</p>
             <p className="mt-1 text-sm text-zinc-400">{item.summary}</p>
             <p className="mt-1 text-xs text-zinc-500">
-              {new Date(item.createdAt).toLocaleDateString()} · Score {item.overallScore}/100
+              <LocalDate iso={item.createdAt} /> · Score {item.overallScore}/100
             </p>
           </div>
           <div className="flex shrink-0 gap-2">

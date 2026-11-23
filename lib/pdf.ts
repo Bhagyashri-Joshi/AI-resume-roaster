@@ -1,4 +1,4 @@
-import { MIN_EXTRACTED_TEXT_LENGTH } from "@/lib/validation";
+import { MIN_EXTRACTED_TEXT_LENGTH } from "@/lib/constants";
 
 export class PdfExtractionError extends Error {
   code: "PDF_PARSE_ERROR" | "EMPTY_RESUME" | "SCANNED_PDF";

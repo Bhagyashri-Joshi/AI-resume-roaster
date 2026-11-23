@@ -1,3 +1,4 @@
+import { card } from "@/components/ui";
 import type { RoastIssue as RoastIssueType } from "@/types/roast";
 
 const SEVERITY_STYLES: Record<RoastIssueType["severity"], string> = {
@@ -8,7 +9,7 @@ const SEVERITY_STYLES: Record<RoastIssueType["severity"], string> = {
 
 export default function RoastIssue({ issue }: { issue: RoastIssueType }) {
   return (
-    <div className="rounded-xl2 border border-white/10 bg-panel p-5">
+    <div className={`${card} p-5`}>
       <div className="mb-2 flex flex-wrap items-center gap-2">
         <span
           className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold uppercase ${SEVERITY_STYLES[issue.severity]}`}

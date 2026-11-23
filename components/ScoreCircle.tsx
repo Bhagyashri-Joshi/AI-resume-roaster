@@ -1,5 +1,3 @@
-"use client";
-
 function scoreColor(score: number): string {
   if (score >= 80) return "#4ade80";
   if (score >= 60) return "#ffd23f";
@@ -34,7 +32,6 @@ export default function ScoreCircle({ score, size = 140 }: { score: number; size
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           strokeLinecap="round"
-          style={{ transition: "stroke-dashoffset 0.6s ease" }}
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">

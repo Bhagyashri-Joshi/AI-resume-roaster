@@ -1,20 +1,25 @@
-import ScoreCard from "@/components/ScoreCard";
+import ScoreCircle from "@/components/ScoreCircle";
 import CategoryScores from "@/components/CategoryScores";
 import RoastIssue from "@/components/RoastIssue";
 import FeedbackCard from "@/components/FeedbackCard";
+import { card, sectionLabel } from "@/components/ui";
 import type { RoastResult as RoastResultType } from "@/types/roast";
 
 export default function RoastResult({ result }: { result: RoastResultType }) {
   return (
     <div className="space-y-8">
-      <ScoreCard score={result.overallScore} summary={result.summary} />
+      <div className={`${card} flex flex-col items-center gap-5 p-8 text-center sm:flex-row sm:text-left`}>
+        <ScoreCircle score={result.overallScore} />
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-accent">Overall Score</p>
+          <p className="mt-2 text-lg text-zinc-200">{result.summary}</p>
+        </div>
+      </div>
 
       <CategoryScores scores={result.categoryScores} />
 
       <section>
-        <h3 className="mb-4 text-sm font-semibold uppercase tracking-widest text-zinc-400">
-          Top Problems
-        </h3>
+        <h3 className={`mb-4 ${sectionLabel}`}>Top Problems</h3>
         <div className="grid gap-4 sm:grid-cols-2">
           {result.topIssues.map((issue, i) => (
             <RoastIssue key={i} issue={issue} />
@@ -24,9 +29,7 @@ export default function RoastResult({ result }: { result: RoastResultType }) {
 
       {result.bulletRoasts.length > 0 && (
         <section>
-          <h3 className="mb-4 text-sm font-semibold uppercase tracking-widest text-zinc-400">
-            Bullet Point Roasts
-          </h3>
+          <h3 className={`mb-4 ${sectionLabel}`}>Bullet Point Roasts</h3>
           <div className="grid gap-4 sm:grid-cols-2">
             {result.bulletRoasts.map((bullet, i) => (
               <FeedbackCard key={i} bullet={bullet} />
@@ -36,10 +39,8 @@ export default function RoastResult({ result }: { result: RoastResultType }) {
       )}
 
       {result.quickWins.length > 0 && (
-        <section className="rounded-xl2 border border-white/10 bg-panel p-6">
-          <h3 className="mb-3 text-sm font-semibold uppercase tracking-widest text-zinc-400">
-            Quick Wins
-          </h3>
+        <section className={`${card} p-6`}>
+          <h3 className={`mb-3 ${sectionLabel}`}>Quick Wins</h3>
           <ul className="space-y-2">
             {result.quickWins.map((win, i) => (
               <li key={i} className="flex gap-2 text-sm text-zinc-200">
@@ -52,9 +53,7 @@ export default function RoastResult({ result }: { result: RoastResultType }) {
       )}
 
       <section className="rounded-xl2 border border-accent/30 bg-accent/10 p-6">
-        <h3 className="mb-2 text-sm font-semibold uppercase tracking-widest text-accent">
-          Final Verdict
-        </h3>
+        <h3 className="mb-2 text-sm font-semibold uppercase tracking-widest text-accent">Final Verdict</h3>
         <p className="text-zinc-100">{result.finalVerdict}</p>
       </section>
     </div>

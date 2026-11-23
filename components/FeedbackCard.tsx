@@ -1,8 +1,9 @@
+import { card } from "@/components/ui";
 import type { BulletRoast } from "@/types/roast";
 
 export default function FeedbackCard({ bullet }: { bullet: BulletRoast }) {
   return (
-    <div className="rounded-xl2 border border-white/10 bg-panel p-5">
+    <div className={`${card} p-5`}>
       <p className="text-xs font-semibold uppercase tracking-widest text-zinc-400">Original</p>
       <p className="mt-1 text-sm text-zinc-300 line-through decoration-red-400/60">{bullet.original}</p>
 

@@ -1,3 +1,4 @@
+import { card, sectionLabel } from "@/components/ui";
 import type { CategoryScores as CategoryScoresType } from "@/types/roast";
 
 const LABELS: Record<keyof CategoryScoresType, string> = {
@@ -12,10 +13,8 @@ const LABELS: Record<keyof CategoryScoresType, string> = {
 
 export default function CategoryScores({ scores }: { scores: CategoryScoresType }) {
   return (
-    <div className="rounded-xl2 border border-white/10 bg-panel p-6">
-      <h3 className="mb-4 text-sm font-semibold uppercase tracking-widest text-zinc-400">
-        Category Scores
-      </h3>
+    <div className={`${card} p-6`}>
+      <h3 className={`mb-4 ${sectionLabel}`}>Category Scores</h3>
       <div className="space-y-4">
         {(Object.keys(LABELS) as (keyof CategoryScoresType)[]).map((key) => (
           <div key={key}>

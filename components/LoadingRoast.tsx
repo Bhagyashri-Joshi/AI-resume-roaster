@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import { card } from "@/components/ui";
+
 const MESSAGES = [
   "Uploading your resume...",
   "Reading between the lines...",
@@ -21,7 +23,7 @@ export default function LoadingRoast() {
   }, []);
 
   return (
-    <div className="flex flex-col items-center gap-4 rounded-xl2 border border-white/10 bg-panel p-12 text-center">
+    <div className={`${card} flex flex-col items-center gap-4 p-12 text-center`}>
       <div className="h-10 w-10 animate-spin rounded-full border-4 border-white/10 border-t-accent" />
       <p className="text-zinc-300">{MESSAGES[index]}</p>
     </div>

@@ -11,16 +11,14 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
     }),
   ],
-  session: {
-    strategy: "database",
-  },
+  // With an adapter, NextAuth uses database sessions by default.
   pages: {
     signIn: "/login",
   },
   callbacks: {
     async session({ session, user }) {
       if (session.user) {
-        (session.user as { id?: string }).id = user.id;
+        session.user.id = user.id;
       }
       return session;
     },

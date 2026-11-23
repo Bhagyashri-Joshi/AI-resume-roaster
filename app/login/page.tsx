@@ -1,6 +1,7 @@
 "use client";
 
 import { signIn } from "next-auth/react";
+import { btnPrimary } from "@/components/ui";
 
 export default function LoginPage() {
   return (
@@ -11,7 +12,7 @@ export default function LoginPage() {
       </p>
       <button
         onClick={() => signIn("google", { callbackUrl: "/roast" })}
-        className="w-full rounded-full bg-accent px-6 py-3 font-bold text-ink hover:opacity-90"
+        className={`w-full ${btnPrimary}`}
       >
         Continue with Google
       </button>

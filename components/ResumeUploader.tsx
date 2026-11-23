@@ -1,38 +1,35 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import UploadDropzone from "@/components/UploadDropzone";
 import LoadingRoast from "@/components/LoadingRoast";
 import ErrorMessage from "@/components/ErrorMessage";
 import RoastResult from "@/components/RoastResult";
+import { btnOutlineSm, btnPrimarySm } from "@/components/ui";
+import { GENERIC_ERROR_MESSAGE, MAX_FILE_SIZE } from "@/lib/constants";
+import { isPdfFile } from "@/lib/file";
 import type { RoastResult as RoastResultType } from "@/types/roast";
 
 type State = "idle" | "uploading" | "success" | "error";
-
-const MAX_FILE_SIZE = 5 * 1024 * 1024;
+// The API adds the saved row's id (null when signed out or the save failed).
+type RoastResponse = RoastResultType & { id: string | null };
 
 export default function ResumeUploader() {
   const [state, setState] = useState<State>("idle");
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<RoastResultType | null>(null);
-  const [savedId, setSavedId] = useState<string | null>(null);
-  const router = useRouter();
+  const [result, setResult] = useState<RoastResponse | null>(null);
+
+  function fail(message: string) {
+    setError(message);
+    setState("error");
+  }
 
   async function handleFile(file: File) {
     setError(null);
 
-    if (!file.name.toLowerCase().endsWith(".pdf") || (file.type && file.type !== "application/pdf")) {
-      setError("Please upload a PDF.");
-      setState("error");
-      return;
-    }
-
-    if (file.size > MAX_FILE_SIZE) {
-      setError("Your resume is larger than 5 MB.");
-      setState("error");
-      return;
-    }
+    if (!isPdfFile(file)) return fail("Please upload a PDF.");
+    if (file.size > MAX_FILE_SIZE) return fail("Your resume is larger than 5 MB.");
 
     setState("uploading");
 
@@ -40,25 +37,17 @@ export default function ResumeUploader() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await fetch("/api/roast", {
-        method: "POST",
-        body: formData,
-      });
-
+      const res = await fetch("/api/roast", { method: "POST", body: formData });
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        setError(data?.error?.message || "The roast machine is temporarily out of sarcasm. Please try again.");
-        setState("error");
-        return;
+        return fail(data?.error?.message || GENERIC_ERROR_MESSAGE);
       }
 
       setResult(data.roast);
-      setSavedId(data.roast.id);
       setState("success");
     } catch {
-      setError("The roast machine is temporarily out of sarcasm. Please try again.");
-      setState("error");
+      fail(GENERIC_ERROR_MESSAGE);
     }
   }
 
@@ -75,19 +64,15 @@ export default function ResumeUploader() {
             onClick={() => {
               setState("idle");
               setResult(null);
-              setError(null);
             }}
-            className="rounded-full border border-white/15 px-5 py-2 text-sm font-semibold hover:bg-white/5"
+            className={btnOutlineSm}
           >
             Roast Another Resume
           </button>
-          {savedId && (
-            <button
-              onClick={() => router.push(`/roast/${savedId}`)}
-              className="rounded-full bg-accent px-5 py-2 text-sm font-semibold text-ink hover:opacity-90"
-            >
+          {result.id && (
+            <Link href={`/roast/${result.id}`} className={btnPrimarySm}>
               View Saved Roast
-            </button>
+            </Link>
           )}
         </div>
       </div>
@@ -97,7 +82,7 @@ export default function ResumeUploader() {
   return (
     <div className="space-y-4">
       {state === "error" && error && <ErrorMessage message={error} />}
-      <UploadDropzone onFileSelected={handleFile} disabled={(state as State) === "uploading"} />
+      <UploadDropzone onFileSelected={handleFile} />
     </div>
   );
 }
